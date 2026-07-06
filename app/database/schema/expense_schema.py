@@ -1,6 +1,6 @@
 from sqlalchemy import Column,Integer,String,DateTime,Float
 from sqlalchemy.orm import Mapped , mapped_column
-from db import Base
+from ..db import Base
 from datetime import datetime, timezone
 
 class Expense_Schema(Base):
