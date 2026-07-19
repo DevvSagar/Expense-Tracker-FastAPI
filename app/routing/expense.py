@@ -2,9 +2,10 @@ from fastapi import APIRouter , Depends , HTTPException
 from typing import Annotated
 from sqlalchemy.orm import Session
 from app.database.db import get_db
-from app.database.schema import Expense_Schema
-from app.models.expense import CreateExpense , UpdateExpense
+from app.models.expense import ExpenseModel
+from app.schema.expense import CreateExpense , UpdateExpense
 from sqlalchemy import select , func
+from app.dependencies import authenicate_user
 
 
 router = APIRouter(prefix="/expense")
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/expense")
 # Step 3 Get all details
 @router.get("/")
 def get_all(db:Annotated[Session,Depends(get_db)]):
-    stmt = select(Expense_Schema.id , Expense_Schema.title , Expense_Schema.category , Expense_Schema.amount , Expense_Schema.note)
+    stmt = select(ExpenseModel.id , ExpenseModel.title , ExpenseModel.category , ExpenseModel.amount , ExpenseModel.note)
 
     total = db.execute(stmt).mappings().all()
     return{ 
@@ -21,10 +22,21 @@ def get_all(db:Annotated[Session,Depends(get_db)]):
     }
 
 
+
+
+
+
+
+
+
+
+
+
+
 # Step 3 — Test GET all Expense
 @router.get("/get_expense")
 def get_expenses(id: int,db:Annotated[Session,Depends(get_db)]):
-    stmt = select(Expense_Schema.amount)
+    stmt = select(ExpenseModel.amount)
     amt = db.execute(stmt).mappings().all()
     return{
         "All_Amount " : amt
@@ -36,7 +48,7 @@ def get_expenses(id: int,db:Annotated[Session,Depends(get_db)]):
 
 @router.get("/category/{category}")
 def get_category(category : str , db:Annotated[Session,Depends(get_db)]):
-    items = db.query(Expense_Schema).filter(Expense_Schema.category == category).all()
+    items = db.query(ExpenseModel).filter(ExpenseModel.category == category).all()
     if not items:
         raise HTTPException(status_code=404, detail="Category not found !!!")
     
@@ -50,7 +62,7 @@ def get_category(category : str , db:Annotated[Session,Depends(get_db)]):
 
 @router.get("/total")
 def total_amount(db:Annotated[Session,Depends(get_db)]):
-    total_amount = db.query(func.sum(Expense_Schema.amount)).scalar()
+    total_amount = db.query(func.sum(ExpenseModel.amount)).scalar()
     if total_amount is None:
         return "Total Amount is 0"
     
@@ -63,7 +75,7 @@ def total_amount(db:Annotated[Session,Depends(get_db)]):
 # GET /expense/summary
 @router.get("/summary")
 def get_summary(db:Annotated[Session , Depends(get_db)]):
-    summary = db.query(Expense_Schema.category,func.sum(Expense_Schema.amount)).group_by(Expense_Schema.category).all()
+    summary = db.query(ExpenseModel.category,func.sum(ExpenseModel.amount)).group_by(ExpenseModel.category).all()
     result = []
 
     for row in summary:
@@ -80,7 +92,7 @@ def get_summary(db:Annotated[Session , Depends(get_db)]):
 
 @router.get("/{id}")
 def getBy_id(id: int,db:Annotated[Session,Depends(get_db)]):
-    items = db.query(Expense_Schema).filter(Expense_Schema.id == id).first()
+    items = db.query(ExpenseModel).filter(ExpenseModel.id == id).first()
     if not items:
         raise HTTPException(status_code=404, detail="Item not found !!!")
     
@@ -91,7 +103,7 @@ def getBy_id(id: int,db:Annotated[Session,Depends(get_db)]):
 
 @router.post("/")
 def save_data(expense : CreateExpense , db : Annotated[Session, Depends(get_db)]):
-    data = Expense_Schema(title=expense.title , amount=expense.amount , category=expense.category , note=expense.note)
+    data = ExpenseModel(title=expense.title , amount=expense.amount , category=expense.category , note=expense.note)
     db.add(data)
     db.commit()
     db.refresh(data)
@@ -102,7 +114,7 @@ def save_data(expense : CreateExpense , db : Annotated[Session, Depends(get_db)]
 
 @router.put("/{id}")
 def update(id: int ,update: UpdateExpense , db:Annotated[Session,Depends(get_db)]):
-    items = db.query(Expense_Schema).filter(Expense_Schema.id == id).first()
+    items = db.query(ExpenseModel).filter(ExpenseModel.id == id).first()
     if not items:
         raise HTTPException(status_code=404, detail="Item not found !!!")
 
@@ -127,7 +139,7 @@ def update(id: int ,update: UpdateExpense , db:Annotated[Session,Depends(get_db)
 
 @router.delete("/{id}")
 def delete(id: int , db : Annotated[Session , Depends(get_db)]):
-    items = db.query(Expense_Schema).filter(Expense_Schema.id == id).first()
+    items = db.query(ExpenseModel).filter(ExpenseModel.id == id).first()
     if not items:
         raise HTTPException(status_code=404, detail="Item not found !!!")
     

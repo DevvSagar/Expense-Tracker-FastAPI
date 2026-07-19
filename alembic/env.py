@@ -20,7 +20,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 from app.database.db import Base
-from app.database.schema import  *
+from app.models import  *
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
