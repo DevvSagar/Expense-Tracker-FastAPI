@@ -42,12 +42,12 @@ def register(data : Register , db:Annotated[Session , Depends(get_db)]):
     new_user = UserModel(
         name = data.name,
         email = data.email,
-        pasword = hashPassword(data.password)
+        password = hashPassword(data.password)
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     return{
-        "Message": "User is Created Successfully !!!j",
+        "Message": "User is Created Successfully !!!",
         "item" : new_user
     }
